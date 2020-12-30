@@ -32,7 +32,7 @@ using namespace std;
 			int index0;
 			int index1;
 	};
-
+	
 	class mycell{
 		public:
 			int orbs_num;
@@ -46,16 +46,18 @@ using namespace std;
 void algorithm_A(Board board, Player player, int index[]){
 
     //////your algorithm design///////////
-
+	cout << RED << " " << BLUE << endl;
 	Save *save;
 	Save *save2;
-	Player my, op;
+	Board tboard;
+
 	char mycolor = player.get_color();
 	char opcolor;
 	int i, j, num;
 	char temp_color;
 	int positive, negative, rank, brank = -40;
 	int better = 0;
+	tboard = board;
 
 	if (mycolor == 'b') {
 		opcolor = 'r';
@@ -67,14 +69,21 @@ void algorithm_A(Board board, Player player, int index[]){
 //		my = &blue_player;
 //		op = &red_player;
 	}
-		
-	save = find(board, mycolor);
-	save2 = find(board, opcolor);
-	
+	Player my(mycolor), op(opcolor);
+	cout << "into algorithm A" << endl;
+	save = find(tboard, mycolor);
+	save2 = find(tboard, opcolor);
+	cout << save[0].index0 << " " << save[0].index1 << endl;
+	cout << "into algorithm A" << endl;
 	for (i = 0; i < 5; i++) {
+		cout << i << "'s index try" << endl;
 		for (num = 0; num < 5; num++) {
-			board.place_orb(save[i].index0, save[i].index1, &my);
-			board.place_orb(save2[0].index0, save2[1].index1, &op);
+			cout << num << "'s next step" << endl;
+//			tboard.place_orb(save[i].index0, save[i].index1, &my);
+			cout << "my" << save[0].index0 << " " << save[i].index1 << endl;
+			tboard.place_orb(save2[0].index0, save2[1].index1, &op);
+	//		cout << "op" << save2[0].index0 << " " << save2[0].index1 << endl;
+			cout << "op done" << endl;
 			for (i = 0; i < 4; i++) {
 				for (j = 0; j < 5; j++) {
 					temp_color = board.get_cell_color(i, j);
@@ -83,6 +92,7 @@ void algorithm_A(Board board, Player player, int index[]){
 				}
 			}
 		}
+		cout << "loop done" << rank << endl;
 		rank = positive - negative;
 		if (rank > brank) better = i;
 		else ;
@@ -93,11 +103,12 @@ void algorithm_A(Board board, Player player, int index[]){
 }
 	Save *find(Board board, char mycolor) {
 		int priority = 100;
-		int i, j;
-		Save *save[5];
+		int i, j, k;
+		static Save save[5];
 		int Index[2];
+		int unchanged = 1;
 		mycell temp[5][6];
-
+	cout << "consturct temp" << endl;
 	for (i = 0; i < 5; i++) {
 		for (j = 0; j < 6; j++) {
 			temp[i][j].orbs_num = board.get_orbs_num(i, j);
@@ -106,6 +117,11 @@ void algorithm_A(Board board, Player player, int index[]){
 			temp[i][j].danger = 0; //false
 		}
 	}
+	cout << "temp done" << endl;
+	for (i = 0; i < 5; i++) {
+		save[i].priority = 16;
+	}
+	cout << "1st consider " << endl;
 	for (i = 0; i < 5; i++) {
 		for (j = 0; j < 6; j++) {
 			if (temp[i][j].orbs_num == 7) {
@@ -213,17 +229,22 @@ void algorithm_A(Board board, Player player, int index[]){
 				}
 			}
 			else;
-		for (i = 0; i < 5; i++) {
-			if (save[i]->priority > priority) {
-				save[i]->index0 = Index[0];
-				save[i]->index1 = Index[1];
-				save[i]->priority = priority;
+		cout << "set save arrary 1 " << endl;
+		for (k = 0; k < 5 && unchanged; k++) {
+			cout << save[k].priority << " " << priority << endl;
+			if (save[k].priority > priority) {
+				save[k].index0 = Index[0];
+				save[k].index1 = Index[1];
+				save[k].priority = priority;
+				unchanged = 0;
 			}
 			else;
 		}
+		unchanged = 1;
 		}
 	}
 	//priority = 100;
+	cout << " 2nd consider " << endl;
 	for (i = 0; i < 5; i++) {
 		for (j = 0; j < 6; j++) {
 			if(temp[i][j].color == mycolor) {
@@ -244,14 +265,17 @@ void algorithm_A(Board board, Player player, int index[]){
 			}
 			else ;
 			}
-			for (i = 0; i < 5; i++) {
-				if (save[i]->priority > priority) {
-					save[i]->index0 = Index[0];
-					save[i]->index1 = Index[1];
-					save[i]->priority = priority;
+			cout << "set save array2 " << endl;
+			for (k = 0; k < 5 && unchanged; k++) {
+				if (save[k].priority > priority) {
+					save[k].index0 = Index[0];
+					save[k].index1 = Index[1];
+					save[k].priority = priority;
+					unchanged = 0;
 				}
 				else;
 			}
+			unchanged = 1;
 		}
 	}
 	return save;
