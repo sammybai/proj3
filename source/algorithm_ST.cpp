@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <time.h>
-#include "include/algorithm.h"
+#include "../include/algorithm.h"
 
 using namespace std;
 
@@ -26,9 +26,13 @@ using namespace std;
 *************************************************************************/
 
 
-void algorithm_A(Board board, Player player, int index[]){
+	class Save{
+		public:
+			int priority;
+			int index0;
+			int index1;
+	};
 
-    //////your algorithm design///////////
 	class mycell{
 		public:
 			int orbs_num;
@@ -37,10 +41,62 @@ void algorithm_A(Board board, Player player, int index[]){
 			int danger;
 			int priority;
 	};
-	mycell temp[5][6];
-	char mycolor = player.get_color(); 
-	int priority = 100;
-	int i, j;
+	Save *find(Board board, char mycolor);
+
+void algorithm_A(Board board, Player player, int index[]){
+
+    //////your algorithm design///////////
+
+	Save *save;
+	Save *save2;
+	Player my, op;
+	char mycolor = player.get_color();
+	char opcolor;
+	int i, j, num;
+	char temp_color;
+	int positive, negative, rank, brank = -40;
+	int better = 0;
+
+	if (mycolor == 'b') {
+		opcolor = 'r';
+//		my = red_player;
+//		op = blue_player;
+	}
+	else {
+		opcolor = 'b';
+//		my = &blue_player;
+//		op = &red_player;
+	}
+		
+	save = find(board, mycolor);
+	save2 = find(board, opcolor);
+	
+	for (i = 0; i < 5; i++) {
+		for (num = 0; num < 5; num++) {
+			board.place_orb(save[i].index0, save[i].index1, &my);
+			board.place_orb(save2[0].index0, save2[1].index1, &op);
+			for (i = 0; i < 4; i++) {
+				for (j = 0; j < 5; j++) {
+					temp_color = board.get_cell_color(i, j);
+					if (temp_color == mycolor) positive++;
+					else if (temp_color == 'b') negative++;
+				}
+			}
+		}
+		rank = positive - negative;
+		if (rank > brank) better = i;
+		else ;
+	}
+	index[0] = save[better].index0;
+	index[1] = save[better].index1;
+	
+}
+	Save *find(Board board, char mycolor) {
+		int priority = 100;
+		int i, j;
+		Save *save[5];
+		int Index[2];
+		mycell temp[5][6];
 
 	for (i = 0; i < 5; i++) {
 		for (j = 0; j < 6; j++) {
@@ -55,8 +111,8 @@ void algorithm_A(Board board, Player player, int index[]){
 			if (temp[i][j].orbs_num == 7) {
 				if (temp[i][j].color == mycolor) {
 					if (priority >= 1) {
-						index[0] = i;
-						index[1] = j;
+						Index[0] = i;
+						Index[1] = j;
 						priority = 1;
 					}
 				}
@@ -74,8 +130,8 @@ void algorithm_A(Board board, Player player, int index[]){
 			else if(temp[i][j].orbs_num == 4 && temp[i][j].capacity == 5) {
 				if (temp[i][j].color == mycolor) {
 					if (priority >= 2) {
-						index[0] = i;
-						index[1] = j;
+						Index[0] = i;
+						Index[1] = j;
 						priority = 2;
 					}
 				}
@@ -92,8 +148,8 @@ void algorithm_A(Board board, Player player, int index[]){
 			else if(temp[i][j].orbs_num == 2 && temp[i][j].capacity == 3) {
 				if (temp[i][j].color == mycolor) {
 					if (priority >= 3) {
-						index[0] = i;
-						index[1] = j;
+						Index[0] = i;
+						Index[1] = j;
 						priority = 3;
 					}
 				}
@@ -109,54 +165,62 @@ void algorithm_A(Board board, Player player, int index[]){
 			}
 			else if (temp[i][j].orbs_num == 6 && !temp[i][j].danger && temp[i][j].color == mycolor) {
 				if (priority >= 4) {
-					index[0] = i;
-					index[1] = j;
+					Index[0] = i;
+					Index[1] = j;
 					priority = 4;
 				}
 			}
 			else if (temp[i][j].orbs_num == 5 && !temp[i][j].danger && temp[i][j].color == mycolor) {
 				if (priority >= 5) {
-					index[0] = i;
-					index[1] = j;
+					Index[0] = i;
+					Index[1] = j;
 					priority = 5;
 				}
 			}
 			else if (temp[i][j].orbs_num == 4 && !temp[i][j].danger && temp[i][j].color == mycolor) {
 				if (priority >= 6) {
-					index[0] = i;
-					index[1] = j;
+					Index[0] = i;
+					Index[1] = j;
 					priority = 6;
 				}
 			}
 			else if (temp[i][j].orbs_num == 3 && !temp[i][j].danger && temp[i][j].color == mycolor) {
 				if (priority >= 7) {
-					index[0] = i;
-					index[1] = j;
+					Index[0] = i;
+					Index[1] = j;
 					priority = 7;
 				}
 			}
 			else if (temp[i][j].orbs_num == 2 && !temp[i][j].danger && temp[i][j].color == mycolor) {
 				if (priority >= 8) {
-					index[0] = i;
-					index[1] = j;
+					Index[0] = i;
+					Index[1] = j;
 					priority = 8;
 				}
 			}
 			else if (temp[i][j].orbs_num == 1 && !temp[i][j].danger && temp[i][j].color == mycolor) {
 				if (priority >= 9) {
-					index[0] = i;
-					index[1] = j;
+					Index[0] = i;
+					Index[1] = j;
 					priority = 9;
 				}
 			}
 			else if (temp[i][j].orbs_num == 0) {
 				if (priority >= 10) {
-					index[0] = i;
-					index[1] = j;
+					Index[0] = i;
+					Index[1] = j;
 					priority = 10;
 				}
 			}
 			else;
+		for (i = 0; i < 5; i++) {
+			if (save[i]->priority > priority) {
+				save[i]->index0 = Index[0];
+				save[i]->index1 = Index[1];
+				save[i]->priority = priority;
+			}
+			else;
+		}
 		}
 	}
 	//priority = 100;
@@ -164,25 +228,31 @@ void algorithm_A(Board board, Player player, int index[]){
 		for (j = 0; j < 6; j++) {
 			if(temp[i][j].color == mycolor) {
 			if (temp[i][j].orbs_num == 7 && temp[i][j].capacity == 8 && temp[i][j].danger == 1)	{
-				index[0] = i;
-				index[1] = j;
+				Index[0] = i;
+				Index[1] = j;
 				priority = 1;
 			}
 			else if (temp[i][j].orbs_num == 4 && temp[i][j].capacity == 5 && temp[i][j].danger == 1 && (priority >= 2))	{
-				index[0] = i;
-				index[1] = j;
+				Index[0] = i;
+				Index[1] = j;
 				priority = 2;
 			}
 			else if (temp[i][j].orbs_num == 2 && temp[i][j].capacity == 3 && temp[i][j].danger == 1 && (priority >= 3))	{
-				index[0] = i;
-				index[1] = j;
+				Index[0] = i;
+				Index[1] = j;
 				priority = 3;
 			}
 			else ;
 			}
+			for (i = 0; i < 5; i++) {
+				if (save[i]->priority > priority) {
+					save[i]->index0 = Index[0];
+					save[i]->index1 = Index[1];
+					save[i]->priority = priority;
+				}
+				else;
+			}
 		}
 	}
-
-				
-
-}
+	return save;
+	}
