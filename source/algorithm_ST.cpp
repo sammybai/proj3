@@ -47,20 +47,23 @@ using namespace std;
 void algorithm_A(Board board, Player player, int index[]){
 
     //////your algorithm design///////////
-	cout << RED << " " << BLUE << endl;
 	Save *save;
 	Save *save2;
 	Board tboard;
+	Board s1board;
+	static bool first_two_step = true;
 
 	static char mycolor = player.get_color();
 	static char opcolor;
 	int i, j, num;
 	int s1, s2;
 	char temp_color;
-	int positive, negative, rank, brank = -40;
+	int positive, negative, rank = -40, trank;
 	int better = 0;
 	int stop = 0;
 	tboard = board;
+
+	int round = 0;
 
 	if (mycolor == 'b') {
 		opcolor = 'r';
@@ -69,73 +72,93 @@ void algorithm_A(Board board, Player player, int index[]){
 		opcolor = 'b';
 	}
 	Player my(mycolor), op(opcolor);
-	cout << "important find" << endl;
-	save = find(tboard, mycolor);
-	save2 = find(tboard, opcolor);
-	cout<< "result of save" << endl;
-	for (i = 0; i < 5; i++) {
-		cout << save[i].index0 << " " << save[i].index1 << endl;
-	}	
-	cout << "result of save2" << endl;
-	for (i = 0; i < 5; i++) {
-		cout << save2[i].index0 << " " << save2[i].index1 << endl;
-	}	
-	cout << "into algorithm A" << endl;
+//	cout << "important find" << endl;
+	save = find(board, mycolor);
+//	cout<< "result of save" << endl;
+//	for (i = 0; i < 5; i++) {
+//		cout << save[i].index0 << " " << save[i].index1 << endl;
+//	}	
+//	cout << "into algorithm A" << endl;
 	for (s1 = 0; s1 < 5; s1++) {
-		cout << s1 << "'s index try" << endl;
+		board.place_orb(save[s1].index0, save[s1].index1, &my);
+		save2 = find(board, opcolor);
+		s1board = board;
 		for (s2 = 0; s2 < 5; s2++) {
-			cout << num << "'s next step" << endl;
-			tboard.place_orb(save[s1].index0, save[s1].index1, &my);
-	//		cout << "my" << save[0].index0 << " " << save[i].index1 << endl;
+			tboard = s1board;
 			tboard.place_orb(save2[s2].index0, save2[s2].index1, &op);
-	//		cout << "op" << save2[0].index0 << " " << save2[0].index1 << endl;
-			if (tboard.win_the_game(my) || tboard.win_the_game(op))	stop = 1;
-			else rank = get_index(tboard, 5, my, op, mycolor, opcolor);
-			if (rank >= brank) {
+//			cout << "(" << s1 << ", " << s2 << ")" << endl;
+			trank = get_index(tboard, 2, my, op, mycolor, opcolor);
+			if (trank > rank) {
+				rank = trank;
 				index[0] = save[s1].index0;
 				index[1] = save[s1].index1;
+//				cout << save[s1].index0 << " " << save[s1].index1 << endl;
+//				cout << "refresh" << index[0] << "  " << index[1]<< endl;
 			}
+			else;
 		}
+//		cout << "out s2" <<endl;
 	}
-	cout << "out main loop " << endl;
+//	cout << index[0] << " " << index[1] << endl;
+//	cout << "out main loop " << endl;
+
 	return ;
 }
 	
-int get_index(Board tboard, int num, Player my, Player op, char mycolor, char opcolor) {
-		static int rank = -40;
+int get_index(Board board, int num, Player my, Player op, char mycolor, char opcolor) {
+		static int rank = -40, trank;
 		int s1, s2, i, j;
 		int positive = 0, negative = 0;
 		Save *save, *save2;
-		int stop = 0;
 		char temp_color;
+		int out = 0;
+		int Num = num; 
+		bool first_two_step = false;
+		Board tboard;
+		Board s1board;
+		Board origin_board = board;
 
-		cout << num << ": " <<"get find" << endl;
-		save = find(tboard, mycolor);
-		save2 = find(tboard, opcolor);
+		save = find(board, mycolor);
 		for (s1 = 0; s1 < 5; s1++) {
-			cout << s1 << "'s index try" << endl;
+//			cout << "	in s1 :" << s1 << endl;
+			s1board = board;
+			s1board.place_orb(save[s1].index0, save[s1].index1, &my);
+			save2 = find(s1board, opcolor);
+			tboard = s1board;
 			for (s2 = 0; s2 < 5; s2++) {
-				for (; num > 0 && !stop;) {
-				cout << num << "'s next step" << endl;
-				tboard.place_orb(save[s1].index0, save[s1].index1, &my);
-	//			cout << "my" << save[0].index0 << " " << save[i].index1 << endl;
+				num = Num;
 				tboard.place_orb(save2[s2].index0, save2[s2].index1, &op);
-	//			cout << "op" << save2[0].index0 << " " << save2[0].index1 << endl;
-				if (tboard.win_the_game(my) || tboard.win_the_game(op))	stop = 1;
-				else get_index(tboard, --num, my, op, mycolor, opcolor);
+				if (tboard.win_the_game(my)) {
+//					cout << "I won " << num << endl;
+					trank = 100;
 				}
-				if (stop) 	rank = 100; // best 
-				for (i = 0; i < 4; i++) {
-					for (j = 0; j < 5; j++) {
-						temp_color = tboard.get_cell_color(i, j);
-						if (temp_color == mycolor) positive++;
-						else if (temp_color == opcolor) negative++;
+				else if (tboard.win_the_game(op)) {
+//					cout << "I lost" << endl;
+					trank = -30;
+				}
+				else if (num > 0) 	{
+//					cout << "(" << s1 << ", " << s2 << ") " << "num: " << num << endl;
+					trank = get_index(tboard, --num, my, op, mycolor, opcolor);
+				}
+				else {
+					positive = 0;
+					negative = 0;
+					for (i = 0; i < 5; i++) {
+						for (j = 0; j < 6; j++) {
+							temp_color = tboard.get_cell_color(i, j);
+							if (temp_color == mycolor) positive++;
+							else if (temp_color == opcolor) negative++;
+							else;
+						}
 					}
+					trank = positive - negative;
 				}
-			cout << "small loop done" << rank << endl;
-			rank = positive - negative;
+				if (trank > rank) rank = trank;
+				else ;
+				tboard = s1board;
 			}
 		}
+		
 		return rank;	
 }
 Save *find(Board board, char mycolor) {
@@ -167,8 +190,6 @@ Save *find(Board board, char mycolor) {
 			if (temp[i][j].orbs_num == 7) {
 				if (temp[i][j].color == mycolor) {
 					if (priority >= 1) {
-						Index[0] = i;
-						Index[1] = j;
 						priority = 1;
 					}
 				}
@@ -186,8 +207,6 @@ Save *find(Board board, char mycolor) {
 			else if(temp[i][j].orbs_num == 4 && temp[i][j].capacity == 5) {
 				if (temp[i][j].color == mycolor) {
 					if (priority >= 2) {
-						Index[0] = i;
-						Index[1] = j;
 						priority = 2;
 					}
 				}
@@ -204,8 +223,6 @@ Save *find(Board board, char mycolor) {
 			else if(temp[i][j].orbs_num == 2 && temp[i][j].capacity == 3) {
 				if (temp[i][j].color == mycolor) {
 					if (priority >= 3) {
-						Index[0] = i;
-						Index[1] = j;
 						priority = 3;
 					}
 				}
@@ -219,122 +236,110 @@ Save *find(Board board, char mycolor) {
 					if ((i + 1) <= 4)	temp[i + 1][j].danger = 1;
 				}
 			}
-			else if (temp[i][j].orbs_num == 6 && !temp[i][j].danger && temp[i][j].color == mycolor) {
+			//else if (temp[i][j].orbs_num == 6 && !temp[i][j].danger && temp[i][j].color == mycolor) {
+			else if (temp[i][j].orbs_num == 6 && temp[i][j].color == mycolor) {
 				if (priority >= 4) {
-					Index[0] = i;
-					Index[1] = j;
 					priority = 4;
 				}
 			}
-			else if (temp[i][j].orbs_num == 5 && !temp[i][j].danger && temp[i][j].color == mycolor) {
+			//else if (temp[i][j].orbs_num == 5 && !temp[i][j].danger && temp[i][j].color == mycolor) {
+			else if (temp[i][j].orbs_num == 5 && temp[i][j].color == mycolor) {
 				if (priority >= 5) {
-					Index[0] = i;
-					Index[1] = j;
 					priority = 5;
 				}
 			}
-			else if (temp[i][j].orbs_num == 4 && !temp[i][j].danger && temp[i][j].color == mycolor) {
+			//else if (temp[i][j].orbs_num == 4 && !temp[i][j].danger && temp[i][j].color == mycolor) {
+			else if (temp[i][j].orbs_num == 4 && temp[i][j].color == mycolor) {
 				if (priority >= 6) {
-					Index[0] = i;
-					Index[1] = j;
 					priority = 6;
 				}
 			}
-			else if (temp[i][j].orbs_num == 3 && !temp[i][j].danger && temp[i][j].color == mycolor) {
+			//else if (temp[i][j].orbs_num == 3 && !temp[i][j].danger && temp[i][j].color == mycolor) {
+			else if (temp[i][j].orbs_num == 3 && temp[i][j].color == mycolor) {
 				if (priority >= 7) {
-					Index[0] = i;
-					Index[1] = j;
 					priority = 7;
 				}
 			}
-			else if (temp[i][j].orbs_num == 2 && !temp[i][j].danger && temp[i][j].color == mycolor) {
+			//else if (temp[i][j].orbs_num == 2 && !temp[i][j].danger && temp[i][j].color == mycolor) {
+			else if (temp[i][j].orbs_num == 2 && temp[i][j].color == mycolor) {
 				if (priority >= 8) {
-					Index[0] = i;
-					Index[1] = j;
 					priority = 8;
 				}
 			}
-			else if (temp[i][j].orbs_num == 1 && !temp[i][j].danger && temp[i][j].color == mycolor) {
+			//else if (temp[i][j].orbs_num == 1 && !temp[i][j].danger && temp[i][j].color == mycolor) {
+			else if (temp[i][j].orbs_num == 1 && temp[i][j].color == mycolor) {
 				if (priority >= 9) {
-					Index[0] = i;
-					Index[1] = j;
 					priority = 9;
 				}
 			}
 			else if (temp[i][j].orbs_num == 0) {
 				if (priority >= 10) {
-					Index[0] = i;
-					Index[1] = j;
 					priority = 10;
 				}
 			}
 			else;
-//		cout << "set save arrary 1 " << endl;
 		for (k = 0; k < 5 && unchanged; k++) {
-//			cout << save[k].priority << " " << priority << endl;
 			if (save[k].priority > priority) {
-				for (l = 5; l - 1 < k; l--) {
+				for (l = 4; l - 1 >= k; l--) {
 					save[l].index0 = save[l - 1].index0;
 					save[l].index1 = save[l - 1].index1;
 					save[l].priority = save[l - 1].priority;
 				}
-//				save[k].index0 = Index[0];
-//				save[k].index1 = Index[1];
 				save[k].index0 = i;
 				save[k].index1 = j;
 				save[k].priority = priority;
 				unchanged = 0;
 			}
 			else;
-//			cout << "k :" << k << endl;
-		}	
+		}
+/*		for (k = 0; k < 5; k++) {
+			if (save[k].priority == 16) {
+				save[k].index0 = save[0].index0;
+				save[k].index1 = save[0].index1;
+			}
+		}*/
 //		for (l = 0; l < 5; l++) {
 //			cout << "l: " << l << " ";
 //			cout << save[l].index0 << " " << save[l].index1 << " " << save[l].priority << endl;
 //		}	
 		unchanged = 1;
-		priority = 16;
+		priority = 17;
 		}
 	}
-//	priority = 100;
-/*	cout << " 2nd consider " << endl;
+	priority = 100;
+//	cout << " 2nd consider " << endl;
 	for (i = 0; i < 5; i++) {
 		for (j = 0; j < 6; j++) {
 			if(temp[i][j].color == mycolor) {
-			if (temp[i][j].orbs_num == 7 && temp[i][j].capacity == 8 && temp[i][j].danger == 1)	{
-				Index[0] = i;
-				Index[1] = j;
-				priority = 1;
+				if (temp[i][j].orbs_num == 7 && temp[i][j].capacity == 8 && temp[i][j].danger == 1)	{
+					priority = 1;
 			}
 			else if (temp[i][j].orbs_num == 4 && temp[i][j].capacity == 5 && temp[i][j].danger == 1 && (priority >= 2))	{
-				Index[0] = i;
-				Index[1] = j;
 				priority = 2;
 			}
 			else if (temp[i][j].orbs_num == 2 && temp[i][j].capacity == 3 && temp[i][j].danger == 1 && (priority >= 3))	{
-				Index[0] = i;
-				Index[1] = j;
 				priority = 3;
 			}
 			else ;
 			}
-			cout << "set save array2 " << endl;
+//			cout << "set save array2 " << endl;
 			for (k = 0; k < 5 && unchanged; k++) {
-				if (save[k].priority > priority) {
-					for (l = 5; l - 1 < k; l--) {
+				if (save[k].priority >= priority) {
+					for (l = 4; l - 1 >= k; l--) {
 						save[l].index0 = save[l - 1].index0;
 						save[l].index1 = save[l - 1].index1;
 						save[l].priority = save[l - 1].priority;
 					}
-					save[k].index0 = Index[0];
-					save[k].index1 = Index[1];
+					save[k].index0 = i;
+					save[k].index1 = j;
 					save[k].priority = priority;
 					unchanged = 0;
 				}
 				else;
 			}
 			unchanged = 1;
+			priority = 17;
 		}
-	}*/
+	}
 	return save;
 	}
