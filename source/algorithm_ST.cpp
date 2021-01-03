@@ -74,18 +74,19 @@ void algorithm_A(Board board, Player player, int index[]){
 	Player my(mycolor), op(opcolor);
 //	cout << "important find" << endl;
 	save = find(board, mycolor);
-//	cout<< "result of save" << endl;
-//	for (i = 0; i < 5; i++) {
-//		cout << save[i].index0 << " " << save[i].index1 << endl;
-//	}	
+	cout<< "result of save" << endl;
+	for (i = 0; i < 5; i++) {
+		cout << save[i].index0 << " " << save[i].index1 << endl;
+	}	
 //	cout << "into algorithm A" << endl;
 	for (s1 = 0; s1 < 5; s1++) {
-		board.place_orb(save[s1].index0, save[s1].index1, &my);
-		save2 = find(board, opcolor);
+		tboard = board;
+		tboard.place_orb(save[s1].index0, save[s1].index1, &my);
+		save2 = find(tboard, opcolor);
 		s1board = board;
-		for (s2 = 0; s2 < 5; s2++) {
-			tboard = s1board;
-			tboard.place_orb(save2[s2].index0, save2[s2].index1, &op);
+//		for (s2 = 0; s2 < 5; s2++) {
+//			tboard = s1board;
+			tboard.place_orb(save2[0].index0, save2[0].index1, &op);
 //			cout << "(" << s1 << ", " << s2 << ")" << endl;
 			trank = get_index(tboard, 2, my, op, mycolor, opcolor);
 			if (trank > rank) {
@@ -93,15 +94,16 @@ void algorithm_A(Board board, Player player, int index[]){
 				index[0] = save[s1].index0;
 				index[1] = save[s1].index1;
 //				cout << save[s1].index0 << " " << save[s1].index1 << endl;
-//				cout << "refresh" << index[0] << "  " << index[1]<< endl;
+				cout << "refresh" << index[0] << "  " << index[1]<< endl;
 			}
 			else;
-		}
+//		}
 //		cout << "out s2" <<endl;
+		delete save2;
 	}
 //	cout << index[0] << " " << index[1] << endl;
-//	cout << "out main loop " << endl;
-
+	cout << "out main loop " << endl;
+	delete save;
 	return ;
 }
 	
@@ -115,29 +117,30 @@ int get_index(Board board, int num, Player my, Player op, char mycolor, char opc
 		int Num = num; 
 		bool first_two_step = false;
 		Board tboard;
-		Board s1board;
-		Board origin_board = board;
 
 		save = find(board, mycolor);
+	cout<< num << "result of save" << endl;
+	for (i = 0; i < 5; i++) {
+		cout << save[i].index0 << " " << save[i].index1 << endl;
+	}	
 		for (s1 = 0; s1 < 5; s1++) {
-//			cout << "	in s1 :" << s1 << endl;
-			s1board = board;
-			s1board.place_orb(save[s1].index0, save[s1].index1, &my);
-			save2 = find(s1board, opcolor);
-			tboard = s1board;
-			for (s2 = 0; s2 < 5; s2++) {
+			cout << "	in s1 :" << s1 << endl;
+			tboard = board;
+			tboard.place_orb(save[s1].index0, save[s1].index1, &my);
+			save2 = find(tboard, opcolor);
+//			for (s2 = 0; s2 < 5; s2++) {
 				num = Num;
-				tboard.place_orb(save2[s2].index0, save2[s2].index1, &op);
+				cout << "num: " << num << endl;
+				tboard.place_orb(save2[0].index0, save2[0].index1, &op);
 				if (tboard.win_the_game(my)) {
-//					cout << "I won " << num << endl;
+					cout << "I won " << num << endl;
 					trank = 100;
 				}
 				else if (tboard.win_the_game(op)) {
-//					cout << "I lost" << endl;
+					cout << "I lost" << endl;
 					trank = -30;
 				}
 				else if (num > 0) 	{
-//					cout << "(" << s1 << ", " << s2 << ") " << "num: " << num << endl;
 					trank = get_index(tboard, --num, my, op, mycolor, opcolor);
 				}
 				else {
@@ -155,9 +158,10 @@ int get_index(Board board, int num, Player my, Player op, char mycolor, char opc
 				}
 				if (trank > rank) rank = trank;
 				else ;
-				tboard = s1board;
-			}
+//			}
+			delete save2;
 		}
+		delete save;
 		
 		return rank;	
 }
@@ -279,7 +283,7 @@ Save *find(Board board, char mycolor) {
 			}
 			else;
 		for (k = 0; k < 5 && unchanged; k++) {
-			if (save[k].priority > priority) {
+			if (save[k].priority >= priority) {
 				for (l = 4; l - 1 >= k; l--) {
 					save[l].index0 = save[l - 1].index0;
 					save[l].index1 = save[l - 1].index1;
@@ -292,12 +296,12 @@ Save *find(Board board, char mycolor) {
 			}
 			else;
 		}
-/*		for (k = 0; k < 5; k++) {
+		for (k = 0; k < 5; k++) {
 			if (save[k].priority == 16) {
 				save[k].index0 = save[0].index0;
 				save[k].index1 = save[0].index1;
 			}
-		}*/
+		}
 //		for (l = 0; l < 5; l++) {
 //			cout << "l: " << l << " ";
 //			cout << save[l].index0 << " " << save[l].index1 << " " << save[l].priority << endl;
