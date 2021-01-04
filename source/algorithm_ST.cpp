@@ -26,13 +26,6 @@ using namespace std;
 *************************************************************************/
 
 
-	class Save{
-		public:
-			int priority;
-			int index0;
-			int index1;
-	};
-	
 	class mycell{
 		public:
 			int orbs_num;
@@ -41,14 +34,19 @@ using namespace std;
 			int danger;
 			int priority;
 	};
-	Save *find(Board board, char mycolor, int number);
-	int get_index(Board tboard, int num, Player my, Player op, char mycolor, char opcolor);
+	#define mINF -1000000000
+	#define INF 100000000
+	#define Is_fault -400000000
+	#define illegal -200000000
+
+int cont_critical(int row, int col, Board board, char color);
+int getscore(Board board, Player player);
+int critical(int row, int col, Board board, char color);
+int minmax(int row, int col, Player my, Player op, Board board, char mycolor, char opcolor, int MAX, int depth, int a, int b, Player nowplayer);
 
 void algorithm_A(Board board, Player player, int index[]){
 
     //////your algorithm design///////////
-	Save *save;
-	Save *save2;
 	Board tboard;
 	Board s1board;
 	static bool first_two_step = true;
@@ -57,132 +55,173 @@ void algorithm_A(Board board, Player player, int index[]){
 	static char opcolor;
 	int i, j, num;
 	int s1, s2;
-	int index0, index1;
 	char temp_color;
-	int positive = 0, negative = 0;
-	int rank = -40, trank ;
-	int better = 0;
-	int stop = 0;
-	tboard = board;
+	int a = mINF;
+	int b = INF;
+	int newscore;
+	int score = mINF;
+	char ncolor;
 
-	int round = 0;
+	if (mycolor == 'b')	opcolor = 'r';
+	else opcolor = 'b';
 
-	if (mycolor == 'b') {
-		opcolor = 'r';
-	}
-	else {
-		opcolor = 'b';
-	}
-	cout << rank << endl;
 	Player my(mycolor), op(opcolor);
-//	cout << "important find" << endl;
-	save = find(board, mycolor, 5);
-	cout<< "result of save" << endl;
-	for (i = 0; i < 5; i++) {
-		cout << save[i].index0 << " " << save[i].index1 << endl;
-	}	
-//	cout << "into algorithm A" << endl;
-	for (s1 = 0; s1 < 5; s1++) {
-		tboard = board;
-		tboard.place_orb(save[s1].index0, save[s1].index1, &my);
-		save2 = find(tboard, opcolor, 1);
-		s1board = board;
-//		for (s2 = 0; s2 < 5; s2++) {
-//			tboard = s1board;
-			tboard.place_orb(save2[0].index0, save2[0].index1, &op);
-//			cout << "(" << s1 << ", " << s2 << ")" << endl;
-			trank = get_index(tboard, 2, my, op, mycolor, opcolor);
-			cout << rank << endl;
-			cout << "		main rank: " << trank << " " << rank <<  endl;
-			if (trank > rank) {
-				rank = trank;
-				index[0] = save[s1].index0;
-				index[1] = save[s1].index1;
-				cout << save[s1].index0 << " " << save[s1].index1 << endl;
-				cout << "refresh" << index[0] << "  " << index[1]<< endl;
-			}
-			else;
-//		}
-//		cout << "out s2" <<endl;
-		delete save2;
-	}
-	cout << "out main loop " << endl;
-	delete save;
-	return ;
-}
 	
-int get_index(Board board, int num, Player my, Player op, char mycolor, char opcolor) {
-		static int rank = -100000, trank;
-		int s1, s2, i, j;
-		double positive = 0, negative = 0;
-		Save *save, *save2;
-		char temp_color;
-		int out = 0;
-		int Num = num; 
-		bool first_two_step = false;
-		Board tboard;
-
-		save = find(board, mycolor, 5);
-	cout<< num << " result of save" << endl;
 	for (i = 0; i < 5; i++) {
-		cout << save[i].index0 << " " << save[i].index1 << " " << save[i].priority << endl;
-	}	
-	for (s1 = 0; s1 < 5; s1++) {
-		cout << "	in s1 :" << s1 << endl;
-		tboard = board;
-		tboard.place_orb(save[s1].index0, save[s1].index1, &my);
-		save2 = find(tboard, opcolor, 1);
-//		for (s2 = 0; s2 < 5; s2++) {
-		num = Num;
-		cout << "num: " << num << endl;
-		tboard.place_orb(save2[0].index0, save2[0].index1, &op);
-		cout << "下棋 ok " << endl;
-		if (tboard.win_the_game(my)) {
-			cout << "I won " << num << endl;
-			rank = 10000000;
+		for (j = 0; j < 6; j++) {
+				newscore = minmax(i, j, my, op, board, mycolor, opcolor, 3, 0, a, b, op);
+				cout << "main : "<< newscore <<" " << score << endl;
+				if (score < newscore) {
+					index[0] = i;
+					index[1] = j;
+					score = newscore;
+				}
+				if (a < newscore) a = newscore;
+				if (b <= a) return;
 		}
-		else if (tboard.win_the_game(op)) {
-			cout << "I lost" << endl;
-			trank = -10000000;
+	}
+	cout << index[0] << " " << index[1] << endl;
+}
+
+int minmax(int row, int col, Player my, Player op, Board board, char mycolor, char opcolor, int MAX, int depth, int a, int b, Player nowplayer) {
+	int WIN = 100000000;
+	int LOSE = -100000000;
+	char nowcolor = nowplayer.get_color();
+	int i, j;
+	int score = mINF;
+	int newscore = 0;
+
+	if ((board.get_cell_color(row, col) != nowcolor) && (board.get_cell_color(row, col) != 'w')) 
+		{
+		cout << "is fault" << endl;
+		return Is_fault;
 		}
-		else if (num > 0) 	{
-			cout << "call other function" << endl;
-			trank = get_index(tboard, num - 1, my, op, mycolor, opcolor);
+
+	if (depth == MAX) {
+		cout << "minmax end : " << depth <<  endl;
+		board.place_orb(row, col, &nowplayer);
+		if (board.win_the_game(nowplayer))		return WIN;
+		if (board.win_the_game(my))		return LOSE;
+		for (i = 0; i < 5; i++) {
+			for (j = 0; j < 6; j++) {
+				newscore = getscore(board, nowplayer);
+				if (newscore > score && !newscore)	score = newscore;
+			}
 		}
-		else {
-			cout << "calulate function" << endl;
-			positive = 0;
-			negative = 0;
-			for (i = 0; i < 5; i++) {
-				for (j = 0; j < 6; j++) {
-					temp_color = tboard.get_cell_color(i, j);
-					if (temp_color == mycolor) positive += tboard.get_orbs_num(i, j);
-					else if (temp_color == opcolor) negative += tboard.get_orbs_num(i, j);
-					else positive += 1;
+		return score;
+	}
+	if (nowcolor == mycolor) {
+		cout << "minmax my : " << depth << endl;
+		board.place_orb(row, col, &my);
+		if (board.win_the_game(my)) 	return WIN;
+		if (board.win_the_game(op)) 	return LOSE;
+		for (i = 0; i < 5; i++) {
+			for (j = 0; j < 6; j++) {
+				if (board.get_cell_color(i, j) != opcolor) 	newscore = minmax(i, j, my, op, board, mycolor, opcolor, 3, 1 + depth, a, b, op);
+				if (newscore != Is_fault) {
+					if (newscore > score)	score = newscore;
+				}
+				if (a < newscore) a = newscore;
+				if (b <= a) return score;
+			}
+		}
+		cout << "my : " << score << endl;
+		return score;
+	}
+	if (nowcolor == opcolor) {
+		cout << "minmax op : " << depth << endl;
+		board.place_orb(row, col, &op);
+		if (board.win_the_game(op)) 	return WIN;
+		if (board.win_the_game(my)) 	return LOSE;
+		score = 2000000000;
+		for (i = 0; i < 5; i++) {
+			for (j = 0; j < 6; j++) {
+				if (board.get_cell_color(i, j) != mycolor)	newscore = minmax(i, j, my, op, board, mycolor, opcolor, 3, 1 + depth, a, b, my);
+				if (newscore != Is_fault) { 
+					if(newscore < score) score = newscore;
+				}
+				if(b > newscore) b = newscore;
+				if(b <= a) return score;
+			}
+		}
+		cout << "op : " << score << endl;
+		return score;
+	}
+}
+
+int getscore(Board board, Player player) {
+	char nowcolor = player.get_color();
+	int i, j;
+	int score = 0;
+	int conti = 0;
+	int num_of_crit = 0;
+
+	for (i = 0; i < 5; i++) {
+		for (j = 0; j < 6; j++) {
+			if (board.get_cell_color(i, j) == nowcolor) {
+				score += board.get_orbs_num(i, j);
+				num_of_crit = critical(i, j, board, nowcolor);
+				score += num_of_crit;
+				if (num_of_crit == 0) {
+					if ((i == 0 && j == 0) || (i == 4 && j == 0) || (i == 0 && j == 5) || (i == 4 && j == 5))
+						score += 3;
+					else if (i == 0 || i == 4 || j == 0 || j == 5) 
+						score += 2;
+					if ((board.get_orbs_num(i, j) + 1) == board.get_capacity(i, j)) 
+						score += 2;
+				}
+				if ((board.get_orbs_num(i, j) + 1) == board.get_capacity(i, j)) {
+					conti = cont_critical(i, j, board, nowcolor);
+					score += 2 * conti;
 				}
 			}
-			trank = positive - negative;
 		}
-		if (trank > rank) rank = trank;
-		else  rank = rank;
-//		}
-		delete save2;
 	}
-	delete save;
-	cout << "go to pre funciont" << rank << endl;
-	return rank;	
+	return score;
 }
-/*Save *find(Board board, char mycolor, int number) {
-		int priority = 100;
-		int i, j, k, l;
-		Save *save;
-		int Index[2];
-		int unchanged = 1;
-		mycell temp[5][6];
 
-	save = new Save[number];		
-//	cout << "consturct temp" << endl;
-	for (i = 0; i < 5; i++) {
+int critical(int row, int col, Board board, char color) {
+	char opcolor;
+	int score = 0;
+
+	if (color == 'r') 	opcolor = 'b';
+	else opcolor = 'r';
+
+	if ((row - 1) >= 0) {
+		if ((board.get_cell_color(row - 1, col) == opcolor) && (board.get_orbs_num(row - 1, col) + 1 == board.get_capacity(row - 1, col))) 
+			score -= 5;
+	}
+	if ((col - 1) >= 0) {
+		if ((board.get_cell_color(row, col - 1) == opcolor) && (board.get_orbs_num(row, col - 1) + 1 == board.get_capacity(row, col -1))) 
+			score -= 5;
+	}
+	if ((col + 1) <= 5) {
+		if ((board.get_cell_color(row, col + 1) == opcolor) && (board.get_orbs_num(row, col + 1) + 1 == board.get_capacity(row, col + 1))) 
+			score -= 5;
+	}
+	if ((row + 1) <= 4) {
+		if ((board.get_cell_color(row + 1, col) == opcolor) && (board.get_orbs_num(row + 1, col) + 1 == board.get_capacity(row + 1, col))) 
+			score -= 5;
+	}
+	return score;
+}
+
+int cont_critical(int row, int col, Board board, char color) {
+	int cont;
+
+	if ((row - 1) >= 0) 
+		if ((board.get_cell_color(row - 1, col)) == color) cont++;
+	if ((col - 1) >= 0) 	
+		if ((board.get_cell_color(row, col - 1)) == color) cont++;
+	if ((row + 1) <= 4) 
+		if ((board.get_cell_color(row + 1, col)) == color) cont++;
+	if ((col + 1) <= 5)
+		if ((board.get_cell_color(row, col + 1)) == color) cont++;
+	return cont;
+}
+
+
+/*	for (i = 0; i < 5; i++) {
 		for (j = 0; j < 6; j++) {
 			temp[i][j].orbs_num = board.get_orbs_num(i, j);
 			temp[i][j].capacity = board.get_capacity(i, j);
@@ -190,21 +229,11 @@ int get_index(Board board, int num, Player my, Player op, char mycolor, char opc
 			temp[i][j].danger = 0; //false
 		}
 	}
-//	cout << "temp done" << endl;
-	for (i = 0; i < number; i++) {
-		save[i].priority = 16;
-	}
-//	cout << "1st consider " << endl;
 	for (i = 0; i < 5; i++) {
 		for (j = 0; j < 6; j++) {
-//			cout << "check next cell" << endl;
 			if (temp[i][j].orbs_num == 7) {
-				if (temp[i][j].color == mycolor) {
-					if (priority >= 1) {
-						priority = 1;
-					}
-				}
-				else {
+				if (temp[i][j].color == mycolor) myc = 1;
+				else  opc = 1;
 					temp[i - 1][j - 1].danger = 1;
 					temp[i - 1][j].danger = 1;
 					temp[i - 1][j + 1].danger = 1;
@@ -213,12 +242,10 @@ int get_index(Board board, int num, Player my, Player op, char mycolor, char opc
 					temp[i + 1][j - 1].danger = 1;
 					temp[i + 1][j].danger = 1;
 					temp[i + 1][j + 1].danger = 1;
-				}	
+				
 			}
 			else if(temp[i][j].orbs_num == 4 && temp[i][j].capacity == 5) {
 				if (temp[i][j].color == mycolor) {
-					if (priority >= 2) {
-						priority = 2;
 					}
 				}
 				else {
